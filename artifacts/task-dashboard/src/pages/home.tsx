@@ -282,8 +282,8 @@ export default function Home() {
   const isError = listQuery.isError || summaryQuery.isError;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <aside className="fixed inset-y-0 left-0 hidden w-61 flex-col bg-sidebar px-5 py-6 text-sidebar-foreground md:flex">
+    <div className="min-h-[100dvh] bg-background">
+      <aside className="fixed inset-y-0 left-0 hidden w-[244px] flex-col bg-sidebar px-5 py-6 text-sidebar-foreground md:flex">
         <div className="flex items-center gap-3 px-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground"><Target className="h-5 w-5" /></div>
           <div><p className="text-sm font-bold tracking-[-0.02em]">Task Dashboard</p><p className="font-mono text-[9px] uppercase tracking-[0.18em] text-sidebar-foreground/55">Personal space</p></div>
@@ -300,8 +300,8 @@ export default function Home() {
         </div>
       </aside>
 
-      <main className="md:pl-61">
-        <div className="mx-auto max-w-295 px-5 py-6 sm:px-8 sm:py-9 lg:px-12">
+      <main className="md:pl-[244px]">
+        <div className="mx-auto max-w-[1180px] px-5 py-6 sm:px-8 sm:py-9 lg:px-12">
           <header className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary"><span className="h-2 w-2 rounded-full bg-accent" /> {weekday}</div>
@@ -312,7 +312,7 @@ export default function Home() {
           </header>
 
           <section className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Progress summary">
-            {isInitialLoading ? [0, 1, 2, 3].map((item) => <div key={item} className="skeleton h-32.5 rounded-2xl" />) : (
+            {isInitialLoading ? [0, 1, 2, 3].map((item) => <div key={item} className="skeleton h-[130px] rounded-2xl" />) : (
               <>
                 <MetricCard label="Open" value={summary?.open ?? tasks.filter((task) => !task.completed).length} detail="still in motion" tint="text-primary" />
                 <MetricCard label="Completed" value={summary?.completed ?? tasks.filter((task) => task.completed).length} detail="made it over the line" tint="text-accent" />
@@ -355,8 +355,8 @@ export default function Home() {
                 </div>
               </section>
               <section className="relative overflow-hidden rounded-2xl bg-accent p-5 text-foreground" data-testid="card-focus-note">
-                <div className="absolute -bottom-10 -right-7 h-32 w-32 rounded-full border-18 border-foreground/10" />
-                <div className="relative"><p className="font-mono text-[10px] font-bold uppercase tracking-[0.17em] text-foreground/60">A note for today</p><p className="mt-4 max-w-55 text-lg font-bold leading-6 tracking-[-0.03em]">Finish the small thing before chasing the big one.</p><div className="mt-5 flex items-center gap-2 text-xs font-semibold text-foreground/65"><Circle className="h-3.5 w-3.5" /> one step is enough</div></div>
+                <div className="absolute -bottom-10 -right-7 h-32 w-32 rounded-full border-[18px] border-foreground/10" />
+                <div className="relative"><p className="font-mono text-[10px] font-bold uppercase tracking-[0.17em] text-foreground/60">A note for today</p><p className="mt-4 max-w-[220px] text-lg font-bold leading-6 tracking-[-0.03em]">Finish the small thing before chasing the big one.</p><div className="mt-5 flex items-center gap-2 text-xs font-semibold text-foreground/65"><Circle className="h-3.5 w-3.5" /> one step is enough</div></div>
               </section>
               <div className="flex items-center gap-2 px-2 text-xs text-muted-foreground"><CalendarDays className="h-3.5 w-3.5" /> Your list is ordered by what comes next.</div>
             </aside>

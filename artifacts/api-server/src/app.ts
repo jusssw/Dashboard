@@ -34,7 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 // Serve the built frontend (artifacts/task-dashboard) if present, so this
-// one server can host both the API and the UI behind a single URL. In local
+// one server can host both the API and the UI behind a single URL — handy
+// for deploying somewhere like Render/Railway/Fly as one service. In local
 // dev this folder won't exist (the frontend runs on its own Vite server
 // instead), so this block is simply skipped.
 const frontendDist = path.resolve(

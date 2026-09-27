@@ -11,6 +11,11 @@ out-tsc
 # dependencies
 node_modules
 
+# environment variables (contains secrets — never commit these)
+.env
+.env.local
+.env.*.local
+
 # IDEs and editors
 /.idea
 .project
@@ -47,7 +52,3 @@ Thumbs.db
 # Replit
 .cache/
 .local/
-
-.env
-.env.local
-.env.*.local

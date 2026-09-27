@@ -13,7 +13,9 @@ try {
 }
 
 // These only matter for the local dev/preview server, not for `vite build`
-// itself, so default them instead of failing the build when they're unset.
+// itself, so default them instead of failing the build when they're unset
+// (e.g. on a host like Render that doesn't need this app to know its own
+// port at build time).
 const rawPort = process.env.PORT;
 const port = rawPort ? Number(rawPort) : 5173;
 
