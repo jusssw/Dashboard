@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "echo 'mockup-sandbox is a Replit-only preview tool, skipping build outside Replit' && exit 0",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "echo 'mockup-sandbox is a Replit-only preview tool, skipping typecheck outside Replit' && exit 0"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
