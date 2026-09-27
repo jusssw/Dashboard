@@ -1,0 +1,1 @@
+- [Supabase connector schema setup](supabase-connector.md) — table creation requires SQL in Supabase; the connector is for the exposed data API.

@@ -1,0 +1,483 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: tasks
+    description: Persistent task management
+  - name: dashboard
+    description: Dashboard summaries
+  - name: pages
+    description: Personal workspace pages and blocks
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /tasks:
+    get:
+      operationId: listTasks
+      tags: [tasks]
+      summary: List tasks
+      description: Returns tasks ordered by due date and creation time
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, open, completed]
+            default: all
+      responses:
+        "200":
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Invalid task
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      tags: [tasks]
+      summary: Get a task
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "200":
+          description: Task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "400":
+          description: Invalid task
+        "404":
+          description: Task not found
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - $ref: "#/components/parameters/TaskId"
+      responses:
+        "204":
+          description: Task deleted
+        "404":
+          description: Task not found
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary
+      description: Returns counts and the next tasks for the dashboard
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /pages:
+    get:
+      operationId: listPages
+      tags: [pages]
+      summary: List workspace pages
+      description: Returns the flat page tree ordered by title
+      responses:
+        "200":
+          description: Workspace pages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Page"
+    post:
+      operationId: createPage
+      tags: [pages]
+      summary: Create a workspace page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PageInput"
+      responses:
+        "201":
+          description: Created page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Page"
+  /pages/{id}:
+    get:
+      operationId: getPage
+      tags: [pages]
+      summary: Get a page with its blocks
+      parameters:
+        - $ref: "#/components/parameters/PageId"
+      responses:
+        "200":
+          description: Page detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageDetail"
+        "404":
+          description: Page not found
+    patch:
+      operationId: updatePage
+      tags: [pages]
+      summary: Update a page
+      parameters:
+        - $ref: "#/components/parameters/PageId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PageUpdate"
+      responses:
+        "200":
+          description: Updated page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Page"
+        "404":
+          description: Page not found
+    delete:
+      operationId: deletePage
+      tags: [pages]
+      summary: Delete a page and its blocks
+      parameters:
+        - $ref: "#/components/parameters/PageId"
+      responses:
+        "204":
+          description: Page deleted
+        "404":
+          description: Page not found
+  /pages/{id}/blocks:
+    post:
+      operationId: createBlock
+      tags: [pages]
+      summary: Create a page block
+      parameters:
+        - $ref: "#/components/parameters/PageId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockInput"
+      responses:
+        "201":
+          description: Created block
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+        "404":
+          description: Page not found
+  /blocks/{id}:
+    patch:
+      operationId: updateBlock
+      tags: [pages]
+      summary: Update a page block
+      parameters:
+        - $ref: "#/components/parameters/BlockId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockUpdate"
+      responses:
+        "200":
+          description: Updated block
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+        "404":
+          description: Block not found
+    delete:
+      operationId: deleteBlock
+      tags: [pages]
+      summary: Delete a page block
+      parameters:
+        - $ref: "#/components/parameters/BlockId"
+      responses:
+        "204":
+          description: Block deleted
+        "404":
+          description: Block not found
+components:
+  parameters:
+    TaskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    PageId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    BlockId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+        - dueDate
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        completed:
+          type: boolean
+        dueDate:
+          type: ["string", "null"]
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    TaskInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        dueDate:
+          type: ["string", "null"]
+          format: date
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: ["string", "null"]
+        completed:
+          type: boolean
+        dueDate:
+          type: ["string", "null"]
+          format: date
+    DashboardSummary:
+      type: object
+      required:
+        - total
+        - open
+        - completed
+        - dueToday
+        - nextTasks
+      properties:
+        total:
+          type: integer
+        open:
+          type: integer
+        completed:
+          type: integer
+        dueToday:
+          type: integer
+        nextTasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+    Page:
+      type: object
+      required:
+        - id
+        - parentId
+        - title
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        parentId:
+          type: ["string", "null"]
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PageDetail:
+      allOf:
+        - $ref: "#/components/schemas/Page"
+        - type: object
+          required:
+            - blocks
+          properties:
+            blocks:
+              type: array
+              items:
+                $ref: "#/components/schemas/Block"
+    PageInput:
+      type: object
+      properties:
+        parentId:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+    PageUpdate:
+      type: object
+      properties:
+        parentId:
+          type: ["string", "null"]
+        title:
+          type: string
+          minLength: 1
+    Block:
+      type: object
+      required:
+        - id
+        - pageId
+        - type
+        - position
+        - content
+        - checked
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+        pageId:
+          type: string
+        type:
+          type: string
+          enum: [paragraph, heading_1, heading_2, heading_3, todo]
+        position:
+          type: integer
+        content:
+          type: string
+        checked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    BlockInput:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [paragraph, heading_1, heading_2, heading_3, todo]
+        position:
+          type: integer
+        content:
+          type: string
+        checked:
+          type: boolean
+    BlockUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [paragraph, heading_1, heading_2, heading_3, todo]
+        position:
+          type: integer
+        content:
+          type: string
+        checked:
+          type: boolean
+

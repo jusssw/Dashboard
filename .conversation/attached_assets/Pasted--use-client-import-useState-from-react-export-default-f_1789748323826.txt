@@ -1,0 +1,151 @@
+"use client";
+
+import {useState} from "react";
+
+export default function Home() {
+  
+  const [newTask, setNewTask] = useState("");
+  const [tasks, setTasks] = useState([
+    { title: "Task 1", done: false },
+    { title: "Task 2", done: false },
+    { title: "Task 3", done: false }
+  ]);
+
+  const completedTasks = tasks.filter((task) => task.done).length;
+
+  const addTask = () => {
+    const title = newTask.trim();
+    if (title === "") return;
+
+    setTasks((currentTasks) => [...currentTasks, { title, done: false }]);
+    setNewTask("");
+  };
+
+  return (
+    <main className="flex min-h-screen bg-gray-100 text-gray-900">
+      
+      {/* Sidebar */}
+      <aside className="w-64 bg-gray-800 text-white p-6">
+          <h2 className="text-2xl font-bold mb-4">My Dashboard</h2>
+          
+        <nav className="flex flex-col gap-4">
+        <a href="#" className="rounded-lg bg-gray-100 px-4 py-2 font-medium">Dashboard</a>
+        <a href="#" className="rounded-lg px-4 py-2 hover:bg-gray-100">Notes</a>
+        <a href="#" className="rounded-lg px-4 py-2 hover:bg-gray-100">Tasks</a>
+        <a href="#" className="rounded-lg px-4 py-2 hover:bg-gray-100">Calendar</a>
+        <a href="#" className="rounded-lg px-4 py-2 hover:bg-gray-100">Projects</a>
+        <a href="#" className="rounded-lg px-4 py-2 hover:bg-gray-100">Learning</a>
+        </nav>
+
+        <button className="mt-8 text-gray-600">
+          + New Page
+        </button>
+        </aside>
+      
+      {/* Main content area */}
+
+      <div className="flex-1 p-8">
+      <h1 className="text-3x1 font-bold">Hello, Josh</h1>
+      <p> Here's what's happening today.</p>
+    
+    <div className="flex gap-4">
+
+    <div className="bg-white p-6 rounded-x1 shadow">
+      <h2 className="text-xl font-semibold">Tasks</h2>
+      <p className="text-gray-800">{completedTasks} of {tasks.length} tasks  </p>
+    </div>
+    
+    <div className="bg-white p-6 rounded-x1 shadow">
+      <h2 className="text-xl font-semibold">Projects</h2>
+      <p className="text-gray-800"> 0 projects  </p>
+    </div>
+
+    <div className="bg-white p-6 rounded-x1 shadow">
+      <h2 className="text-xl font-semibold">Notes</h2>
+      <p className="text-gray-800"> 0 notes  </p>
+    
+    </div>
+    
+    </div>
+
+    
+      <div className="mt-6 bg-white p-6 rounded-x1 shadow">
+      <h2 className="text-xl font-semibold mb-4">Today schedules </h2>
+      <div className="flex flex-col gap-3">
+      <p>00:00  </p>
+      <p>00:00  </p>
+      <p>00:00  </p>
+      </div>
+      </div>
+    
+
+    <div className="mt-6 bg-white p-6 rounded-x1 shadow">
+      <h2 className="text-xl font-semibold mb-4">Tasks</h2>
+
+      <div className="flex gap-2 mb-4">
+      <input
+      type="text"
+      placeholder="Add a new task"
+      value={newTask}
+      onChange={(e) => setNewTask(e.target.value)}
+      className="flex-1 border border-gray-300 rounded-1g border px-4 py-2"
+      />
+
+        <button 
+        onClick={addTask}
+        className="rounded-lg bg-gray-900 px-4 text-white"
+        >
+          Add Task
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {tasks.map((task, index) => (
+          <label htmlFor={`task-${index}`} key={`${task.title}-${index}`}>
+            <input
+              type="checkbox"
+              id={`task-${index}`}
+              className="mr-2"
+              checked={task.done}
+              onChange={() => {
+                setTasks((currentTasks) => currentTasks.map((currentTask, taskIndex) =>
+                  taskIndex === index
+                    ? { ...currentTask, done: !currentTask.done }
+                    : currentTask
+                ));
+              }}
+            />
+            {task.title}
+          </label>
+        ))}
+
+       </div>
+       </div>
+
+    
+
+      <div className="mt-6 bg-white p-6 rounded-x1 shadow">
+
+      <h2 className="text-xl font-semibold mb-4">Recent notes</h2>
+
+     <ul className="flex flex-col gap-2"> 
+
+      <li>      
+          Web development      
+      </li>
+       <li>      
+          Web development      
+      </li>
+       <li>      
+          Web development      
+      </li>
+
+     </ul>
+      </div>
+
+    </div>
+
+    
+  </main>
+  );
+}

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Task Dashboard"
+description = "A personal productivity dashboard for managing persistent tasks today, with a foundation for notes, projects, and calendar planning."
+version = "1.0.0"
+id = "artifacts/task-dashboard"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25372
+
+[services.development]
+run = "pnpm --filter @workspace/task-dashboard run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/task-dashboard", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/task-dashboard/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25372"
+BASE_PATH = "/"
