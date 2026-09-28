@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+import type { ChecklistItem } from './checklistItem';
+
 export interface Task {
   id: string;
   title: string;
@@ -16,4 +18,5 @@ export interface Task {
   dueDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  checklist?: ChecklistItem[];
 }

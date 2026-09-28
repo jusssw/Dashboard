@@ -9,6 +9,12 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -19,6 +25,7 @@ export interface Task {
   dueDate: string | null;
   createdAt: string;
   updatedAt: string;
+  checklist?: ChecklistItem[];
 }
 
 export interface TaskInput {
@@ -28,6 +35,7 @@ export interface TaskInput {
   description?: string | null;
   /** @nullable */
   dueDate?: string | null;
+  checklist?: ChecklistItem[];
 }
 
 export interface TaskUpdate {
@@ -38,6 +46,7 @@ export interface TaskUpdate {
   completed?: boolean;
   /** @nullable */
   dueDate?: string | null;
+  checklist?: ChecklistItem[];
 }
 
 export interface DashboardSummary {

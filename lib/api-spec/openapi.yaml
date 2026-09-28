@@ -328,6 +328,23 @@ components:
         updatedAt:
           type: string
           format: date-time
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
+    ChecklistItem:
+      type: object
+      required:
+        - id
+        - text
+        - done
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        done:
+          type: boolean
     TaskInput:
       type: object
       required:
@@ -341,6 +358,10 @@ components:
         dueDate:
           type: ["string", "null"]
           format: date
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
     TaskUpdate:
       type: object
       properties:
@@ -354,6 +375,10 @@ components:
         dueDate:
           type: ["string", "null"]
           format: date
+        checklist:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
     DashboardSummary:
       type: object
       required:

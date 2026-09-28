@@ -34,7 +34,12 @@ export const ListTasksResponseItem = zod.object({
   "completed": zod.boolean(),
   "dueDate": zod.coerce.date().nullable(),
   "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 export const ListTasksResponse = zod.array(ListTasksResponseItem)
 
@@ -48,7 +53,12 @@ export const ListTasksResponse = zod.array(ListTasksResponseItem)
 export const CreateTaskBody = zod.object({
   "title": zod.string().min(1),
   "description": zod.string().nullish(),
-  "dueDate": zod.coerce.date().nullish()
+  "dueDate": zod.coerce.date().nullish(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 
 export const CreateTaskResponse = zod.object({
@@ -58,7 +68,12 @@ export const CreateTaskResponse = zod.object({
   "completed": zod.boolean(),
   "dueDate": zod.coerce.date().nullable(),
   "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 
 
@@ -79,7 +94,12 @@ export const GetTaskResponse = zod.object({
   "completed": zod.boolean(),
   "dueDate": zod.coerce.date().nullable(),
   "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 
 
@@ -100,7 +120,12 @@ export const UpdateTaskBody = zod.object({
   "title": zod.string().min(1).optional(),
   "description": zod.string().nullish(),
   "completed": zod.boolean().optional(),
-  "dueDate": zod.coerce.date().nullish()
+  "dueDate": zod.coerce.date().nullish(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 
 export const UpdateTaskResponse = zod.object({
@@ -110,7 +135,12 @@ export const UpdateTaskResponse = zod.object({
   "completed": zod.boolean(),
   "dueDate": zod.coerce.date().nullable(),
   "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 })
 
 
@@ -143,7 +173,12 @@ export const GetDashboardSummaryResponse = zod.object({
   "completed": zod.boolean(),
   "dueDate": zod.coerce.date().nullable(),
   "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "updatedAt": zod.coerce.date(),
+  "checklist": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "done": zod.boolean()
+})).optional()
 }))
 })
 

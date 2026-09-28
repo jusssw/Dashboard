@@ -12,6 +12,7 @@ export * from './blockInputType';
 export * from './blockType';
 export * from './blockUpdate';
 export * from './blockUpdateType';
+export * from './checklistItem';
 export * from './dashboardSummary';
 export * from './healthStatus';
 export * from './listTasksParams';

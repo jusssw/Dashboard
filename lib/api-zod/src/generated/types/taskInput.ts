@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+import type { ChecklistItem } from './checklistItem';
+
 export interface TaskInput {
   /** @minLength 1 */
   title: string;
@@ -13,4 +15,5 @@ export interface TaskInput {
   description?: string | null;
   /** @nullable */
   dueDate?: Date | null;
+  checklist?: ChecklistItem[];
 }

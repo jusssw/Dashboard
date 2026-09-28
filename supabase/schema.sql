@@ -10,9 +10,13 @@ create table if not exists public.tasks (
   description text,
   completed boolean not null default false,
   due_date date,
+  checklist jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- For databases created before checklists existed: adds the column safely.
+alter table public.tasks add column if not exists checklist jsonb not null default '[]'::jsonb;
 
 create index if not exists tasks_completed_idx on public.tasks (completed);
 create index if not exists tasks_due_date_idx on public.tasks (due_date);

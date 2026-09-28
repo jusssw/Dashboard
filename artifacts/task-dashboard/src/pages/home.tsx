@@ -10,6 +10,7 @@ import {
   Circle,
   CircleCheck,
   Clock3,
+  Eye,
   Inbox,
   ListChecks,
   Pencil,
@@ -31,7 +32,7 @@ import {
   useListTasks,
   useUpdateTask,
 } from '@workspace/api-client-react';
-import type { Task } from '@workspace/api-client-react';
+import type { ChecklistItem, Task } from '@workspace/api-client-react';
 
 type Filter = 'all' | 'open' | 'completed';
 
@@ -46,6 +47,11 @@ const displayDate = (value: string | null | undefined) => {
   if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
 };
+
+const newItemId = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 
 const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 const longDate = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
@@ -81,18 +87,22 @@ function MetricCard({ label, value, detail, tint }: { label: string; value: numb
 function TaskRow({
   task,
   onToggle,
+  onView,
   onEdit,
   onDelete,
   deleting,
 }: {
   task: Task;
   onToggle: (task: Task) => void;
+  onView: (task: Task) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   deleting: boolean;
 }) {
   const due = displayDate(task.dueDate);
   const isOverdue = task.dueDate && !task.completed && task.dueDate < todayKey();
+  const checklist = task.checklist ?? [];
+  const checklistDone = checklist.filter((item) => item.done).length;
   return (
     <div className={`group flex items-center gap-3 rounded-2xl border border-border/75 bg-card px-4 py-4 shadow-[0_6px_18px_rgba(39,48,76,0.035)] transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_10px_24px_rgba(39,48,76,0.08)] ${task.completed ? 'bg-card/65' : ''} ${deleting ? 'pointer-events-none opacity-50' : ''}`} data-testid={`task-row-${task.id}`}>
       <button
@@ -102,7 +112,7 @@ function TaskRow({
         className={`relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${task.completed ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/35 text-transparent hover:border-primary hover:text-primary/30'}`}
         data-testid={`button-toggle-task-${task.id}`}
       >
-        <Check className="h-3.5 w-3.5 stroke-3" />
+        <Check className="h-3.5 w-3.5 stroke-[3]" />
       </button>
       <div className="min-w-0 flex-1">
         <p className={`truncate text-[15px] font-semibold tracking-[-0.01em] ${task.completed ? 'text-muted-foreground line-through decoration-primary/60' : 'text-foreground'}`} data-testid={`text-task-title-${task.id}`}>
@@ -110,12 +120,22 @@ function TaskRow({
         </p>
         {task.description && <p className="mt-1 truncate text-sm text-muted-foreground" data-testid={`text-task-description-${task.id}`}>{task.description}</p>}
       </div>
+      {checklist.length > 0 && (
+        <span className="hidden items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground sm:flex" data-testid={`status-checklist-${task.id}`}>
+          <ListChecks className="h-3.5 w-3.5" />
+          {checklistDone}/{checklist.length}
+        </span>
+      )}
       {due && (
         <span className={`hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium sm:flex ${isOverdue ? 'bg-destructive/10 text-destructive' : 'bg-secondary text-secondary-foreground'}`} data-testid={`status-due-${task.id}`}>
           <CalendarDays className="h-3.5 w-3.5" />
           {isOverdue ? 'Overdue' : due}
         </span>
       )}
+      <button type="button" onClick={() => onView(task)} aria-label={`View ${task.title}`} className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground hover:bg-muted" data-testid={`button-view-task-${task.id}`}>
+        <Eye className="h-4 w-4" />
+        <span className="hidden sm:inline">View</span>
+      </button>
       <div className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
         <button type="button" onClick={() => onEdit(task)} aria-label={`Edit ${task.title}`} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid={`button-edit-task-${task.id}`}>
           <Pencil className="h-4 w-4" />
@@ -123,6 +143,137 @@ function TaskRow({
         <button type="button" onClick={() => onDelete(task)} aria-label={`Delete ${task.title}`} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" data-testid={`button-delete-task-${task.id}`}>
           <Trash2 className="h-4 w-4" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ChecklistEditor({
+  items,
+  onChange,
+}: {
+  items: ChecklistItem[];
+  onChange: (next: ChecklistItem[]) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const doneCount = items.filter((item) => item.done).length;
+  const percent = items.length > 0 ? Math.round((doneCount / items.length) * 100) : 0;
+
+  // Each line becomes its own item, so a whole pasted list works too.
+  const addItems = () => {
+    const lines = draft
+      .split('\n')
+      .map((line) => line.replace(/^\s*(?:[-*\u2022]|\d+[.)])\s*/, '').trim())
+      .filter((line) => line.length > 0);
+    if (lines.length === 0) return;
+    setDraft('');
+    onChange([...items, ...lines.map((text) => ({ id: newItemId(), text, done: false }))]);
+  };
+
+  const toggleItem = (id: string) => onChange(items.map((item) => (item.id === id ? { ...item, done: !item.done } : item)));
+  const removeItem = (id: string) => onChange(items.filter((item) => item.id !== id));
+
+  return (
+    <div>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">To-do list <span className="font-normal normal-case tracking-normal">(optional)</span></h3>
+        {items.length > 0 && <span className="font-mono text-xs text-muted-foreground" data-testid="text-checklist-progress">{doneCount}/{items.length} done</span>}
+      </div>
+      {items.length > 0 && <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${percent}%` }} /></div>}
+
+      {items.length === 0 ? (
+        <p className="mt-3 rounded-xl border border-dashed border-border px-4 py-4 text-center text-sm text-muted-foreground" data-testid="state-checklist-empty">No steps yet. Add the first one below.</p>
+      ) : (
+        <ul className="mt-3 space-y-1" data-testid="list-checklist">
+          {items.map((item) => (
+            <li key={item.id} className="group flex items-start gap-3 rounded-xl px-2 py-2 hover:bg-secondary/60" data-testid={`checklist-item-${item.id}`}>
+              <button type="button" onClick={() => toggleItem(item.id)} aria-label={item.done ? `Mark "${item.text}" not done` : `Mark "${item.text}" done`} className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${item.done ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/35 text-transparent hover:border-primary'}`}>
+                <Check className="h-3 w-3 stroke-[3]" />
+              </button>
+              <span className={`min-w-0 flex-1 break-words text-[15px] leading-6 ${item.done ? 'text-muted-foreground line-through decoration-primary/60' : 'text-foreground'}`}>{item.text}</span>
+              <button type="button" onClick={() => removeItem(item.id)} aria-label={`Remove "${item.text}"`} className="rounded-lg p-1 text-muted-foreground opacity-100 hover:bg-destructive/10 hover:text-destructive sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
+                <X className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-3 flex items-start gap-2">
+        <textarea
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              addItems();
+            }
+          }}
+          onBlur={addItems}
+          rows={1}
+          placeholder="Add a step (paste a list to add many)"
+          className="min-h-[46px] w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-[15px] placeholder:text-muted-foreground/65"
+          data-testid="input-checklist-item"
+        />
+        <button type="button" onClick={addItems} disabled={draft.trim().length === 0} className="inline-flex h-[46px] shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground disabled:pointer-events-none disabled:opacity-50" data-testid="button-add-checklist-item">
+          <Plus className="h-4 w-4" /> Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TaskDetailModal({
+  task,
+  onClose,
+  onEdit,
+}: {
+  task: Task;
+  onClose: () => void;
+  onEdit: (task: Task) => void;
+}) {
+  const queryClient = useQueryClient();
+  const updateTask = useUpdateTask();
+  const [items, setItems] = useState<ChecklistItem[]>(task.checklist ?? []);
+  const [error, setError] = useState('');
+
+  const due = displayDate(task.dueDate);
+
+  const save = (next: ChecklistItem[]) => {
+    setItems(next);
+    setError('');
+    updateTask.mutate({ id: task.id, data: { checklist: next } }, {
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: getListTasksQueryKey() }),
+          queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(task.id) }),
+        ]);
+      },
+      onError: () => setError('Could not save your list. Try again.'),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/25 p-0 backdrop-blur-[2px] sm:items-center sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div className="max-h-[92dvh] w-full max-w-xl animate-rise-in overflow-y-auto rounded-t-3xl border border-border bg-card p-6 shadow-2xl sm:rounded-3xl" role="dialog" aria-modal="true" aria-labelledby="task-detail-title" data-testid="dialog-task-detail">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Full task</p>
+            <h2 id="task-detail-title" className="mt-2 break-words text-2xl font-bold tracking-[-0.04em]" data-testid="text-detail-title">{task.title}</h2>
+          </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <button type="button" onClick={() => onEdit(task)} aria-label="Edit task details" className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid="button-detail-edit"><Pencil className="h-5 w-5" /></button>
+            <button type="button" onClick={onClose} aria-label="Close" className="rounded-xl p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid="button-detail-close"><X className="h-5 w-5" /></button>
+          </div>
+        </div>
+
+        {task.description && <p className="mt-4 whitespace-pre-wrap text-[15px] leading-6 text-muted-foreground" data-testid="text-detail-description">{task.description}</p>}
+        {due && <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"><CalendarDays className="h-3.5 w-3.5" /> Due {due}</p>}
+
+        <div className="mt-7">
+          <ChecklistEditor items={items} onChange={save} />
+          {error && <p className="mt-3 rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert" data-testid="status-checklist-error">{error}</p>}
+        </div>
       </div>
     </div>
   );
@@ -147,6 +298,7 @@ function TaskModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
@@ -154,6 +306,7 @@ function TaskModal({
       setTitle(detailQuery.data.title);
       setDescription(detailQuery.data.description ?? '');
       setDueDate(detailQuery.data.dueDate ?? '');
+      setChecklist(detailQuery.data.checklist ?? []);
     }
   }, [detailQuery.data]);
 
@@ -166,7 +319,7 @@ function TaskModal({
       return;
     }
     setFormError('');
-    const data = { title: cleanTitle, description: description.trim() || null, dueDate: dueDate || null };
+    const data = { title: cleanTitle, description: description.trim() || null, dueDate: dueDate || null, checklist };
     if (taskId) {
       updateTask.mutate({ id: taskId, data }, {
         onSuccess: async () => {
@@ -195,7 +348,7 @@ function TaskModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/25 p-0 backdrop-blur-[2px] sm:items-center sm:p-6" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="w-full max-w-lg animate-rise-in rounded-t-3xl border border-border bg-card p-6 shadow-2xl sm:rounded-3xl" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" data-testid="dialog-task">
+      <div className="max-h-[92dvh] w-full max-w-lg animate-rise-in overflow-y-auto rounded-t-3xl border border-border bg-card p-6 shadow-2xl sm:rounded-3xl" role="dialog" aria-modal="true" aria-labelledby="task-modal-title" data-testid="dialog-task">
         <div className="flex items-start justify-between">
           <div>
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{isEditing ? 'Refine task' : 'New intention'}</p>
@@ -219,6 +372,7 @@ function TaskModal({
               <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Due date <span className="font-normal normal-case tracking-normal">(optional)</span></span>
               <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-[15px]" data-testid="input-task-due-date" />
             </label>
+            <ChecklistEditor items={checklist} onChange={setChecklist} />
             {formError && <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert" data-testid="status-task-form-error">{formError}</p>}
             <div className="flex justify-end gap-3 pt-1">
               <button type="button" onClick={onClose} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground" data-testid="button-cancel-task">Cancel</button>
@@ -239,6 +393,7 @@ export default function Home() {
   const [filter, setFilter] = useState<Filter>('all');
   const [modalTaskId, setModalTaskId] = useState<string | null | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+  const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [actionError, setActionError] = useState('');
   const listQuery = useListTasks(filter === 'all' ? undefined : { status: filter }, { query: { queryKey: getListTasksQueryKey(filter === 'all' ? undefined : { status: filter }) } });
   const summaryQuery = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey() } });
@@ -341,7 +496,7 @@ export default function Home() {
                 ) : tasks.length === 0 ? (
                   <div className="quiet-grid rounded-2xl border border-dashed border-border bg-card px-6 py-14 text-center" data-testid="state-task-empty"><div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary"><Inbox className="h-6 w-6" /></div><p className="mt-5 text-lg font-bold">{filter === 'completed' ? 'Nothing completed yet.' : filter === 'open' ? 'Your open queue is clear.' : 'A blank page, for once.'}</p><p className="mx-auto mt-2 max-w-xs text-sm leading-5 text-muted-foreground">{filter === 'completed' ? 'Finish a task and it will land here as proof of progress.' : 'Add one meaningful thing and give the day a direction.'}</p>{filter !== 'completed' && <button type="button" onClick={() => openModal()} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground" data-testid="button-empty-add-task"><Plus className="h-4 w-4" /> Add a task</button>}</div>
                 ) : (
-                  <div className="space-y-3" data-testid="list-tasks">{tasks.map((task) => <TaskRow key={task.id} task={task} onToggle={toggleTask} onEdit={openModal} onDelete={setDeleteTarget} deleting={deleteTask.isPending && deleteTarget?.id === task.id} />)}</div>
+                  <div className="space-y-3" data-testid="list-tasks">{tasks.map((task) => <TaskRow key={task.id} task={task} onToggle={toggleTask} onView={setDetailTask} onEdit={openModal} onDelete={setDeleteTarget} deleting={deleteTask.isPending && deleteTarget?.id === task.id} />)}</div>
                 )}
               </div>
             </section>
@@ -364,6 +519,7 @@ export default function Home() {
         </div>
       </main>
 
+      {detailTask && <TaskDetailModal key={detailTask.id} task={detailTask} onClose={() => setDetailTask(null)} onEdit={(task) => { setDetailTask(null); openModal(task); }} />}
       {modalTaskId !== undefined && <TaskModal taskId={modalTaskId} onClose={() => setModalTaskId(undefined)} onCreated={() => setModalTaskId(undefined)} />}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/25 p-5 backdrop-blur-[2px]" role="presentation">

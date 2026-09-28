@@ -12,12 +12,15 @@ import {
 import { logger } from "../lib/logger";
 import { SupabaseError, supabaseRequest } from "../lib/supabase";
 
+type ChecklistItem = { id: string; text: string; done: boolean };
+
 type SupabaseTask = {
   id: string;
   title: string;
   description: string | null;
   completed: boolean;
   due_date: string | null;
+  checklist?: ChecklistItem[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -31,6 +34,7 @@ function toTask(task: SupabaseTask) {
     description: task.description,
     completed: task.completed,
     dueDate: task.due_date,
+    checklist: task.checklist ?? [],
     createdAt: task.created_at,
     updatedAt: task.updated_at,
   };
@@ -97,6 +101,7 @@ router.post("/tasks", async (req, res) => {
           description: body.description ?? null,
           completed: false,
           due_date: dateOnly(body.dueDate),
+          checklist: body.checklist ?? [],
           created_at: now,
           updated_at: now,
         }),
@@ -128,7 +133,7 @@ router.patch("/tasks/:id", async (req, res) => {
   try {
     const { id } = DeleteTaskParams.parse(req.params);
     const body = UpdateTaskBody.parse(req.body);
-    const payload: Record<string, string | boolean | null> = {
+    const payload: Record<string, string | boolean | null | ChecklistItem[]> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -136,6 +141,7 @@ router.patch("/tasks/:id", async (req, res) => {
     if (body.description !== undefined) payload.description = body.description;
     if (body.completed !== undefined) payload.completed = body.completed;
     if (body.dueDate !== undefined) payload.due_date = dateOnly(body.dueDate);
+    if (body.checklist !== undefined) payload.checklist = body.checklist;
 
     const data = await supabaseRequest<SupabaseTask[]>(
       `/tasks?id=eq.${encodeURIComponent(id)}&select=*`,
