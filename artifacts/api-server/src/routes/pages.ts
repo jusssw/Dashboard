@@ -24,6 +24,7 @@ type SupabasePage = {
   id: string;
   parent_id: string | null;
   title: string;
+  icon: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -46,6 +47,7 @@ function toPage(page: SupabasePage) {
     id: page.id,
     parentId: page.parent_id,
     title: page.title,
+    icon: page.icon,
     createdAt: page.created_at,
     updatedAt: page.updated_at,
   };
@@ -105,6 +107,7 @@ router.post("/pages", async (req, res) => {
         id: crypto.randomUUID(),
         parent_id: body.parentId ?? null,
         title: body.title?.trim() || "Untitled",
+        icon: body.icon ?? null,
         created_at: now,
         updated_at: now,
       }),
@@ -148,6 +151,7 @@ router.patch("/pages/:id", async (req, res) => {
     };
     if (body.title !== undefined) payload.title = body.title.trim();
     if (body.parentId !== undefined) payload.parent_id = body.parentId;
+    if (body.icon !== undefined) payload.icon = body.icon;
     const data = await supabaseRequest<SupabasePage[]>(
       `/pages?id=eq.${encodeURIComponent(id)}&select=*`,
       {

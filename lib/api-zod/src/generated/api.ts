@@ -191,6 +191,7 @@ export const ListPagesResponseItem = zod.object({
   "id": zod.string(),
   "parentId": zod.string().nullable(),
   "title": zod.string(),
+  "icon": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -205,13 +206,15 @@ export const ListPagesResponse = zod.array(ListPagesResponseItem)
 
 export const CreatePageBody = zod.object({
   "parentId": zod.string().nullish(),
-  "title": zod.string().min(1).optional()
+  "title": zod.string().min(1).optional(),
+  "icon": zod.string().nullish()
 })
 
 export const CreatePageResponse = zod.object({
   "id": zod.string(),
   "parentId": zod.string().nullable(),
   "title": zod.string(),
+  "icon": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -231,6 +234,7 @@ export const GetPageResponse = zod.object({
   "id": zod.string(),
   "parentId": zod.string().nullable(),
   "title": zod.string(),
+  "icon": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }).and(zod.object({
@@ -262,13 +266,15 @@ export const UpdatePageParams = zod.object({
 
 export const UpdatePageBody = zod.object({
   "parentId": zod.string().nullish(),
-  "title": zod.string().min(1).optional()
+  "title": zod.string().min(1).optional(),
+  "icon": zod.string().nullish()
 })
 
 export const UpdatePageResponse = zod.object({
   "id": zod.string(),
   "parentId": zod.string().nullable(),
   "title": zod.string(),
+  "icon": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

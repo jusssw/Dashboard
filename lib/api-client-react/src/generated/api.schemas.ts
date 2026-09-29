@@ -62,6 +62,8 @@ export interface Page {
   /** @nullable */
   parentId: string | null;
   title: string;
+  /** @nullable */
+  icon?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -97,6 +99,8 @@ export interface PageInput {
   parentId?: string | null;
   /** @minLength 1 */
   title?: string;
+  /** @nullable */
+  icon?: string | null;
 }
 
 export interface PageUpdate {

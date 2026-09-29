@@ -11,4 +11,6 @@ export interface PageInput {
   parentId?: string | null;
   /** @minLength 1 */
   title?: string;
+  /** @nullable */
+  icon?: string | null;
 }

@@ -30,6 +30,8 @@ create table if not exists public.pages (
   updated_at timestamptz not null default now()
 );
 
+alter table public.pages add column if not exists icon text;
+
 create index if not exists pages_parent_id_idx on public.pages (parent_id);
 create index if not exists pages_updated_at_idx on public.pages (updated_at desc);
 

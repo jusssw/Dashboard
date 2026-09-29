@@ -11,6 +11,8 @@ export interface Page {
   /** @nullable */
   parentId: string | null;
   title: string;
+  /** @nullable */
+  icon?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

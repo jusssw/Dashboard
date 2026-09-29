@@ -415,6 +415,8 @@ components:
           type: ["string", "null"]
         title:
           type: string
+        icon:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -440,6 +442,8 @@ components:
         title:
           type: string
           minLength: 1
+        icon:
+          type: ["string", "null"]
     PageUpdate:
       type: object
       properties:
@@ -448,6 +452,8 @@ components:
         title:
           type: string
           minLength: 1
+        icon:
+          type: ["string", "null"]
     Block:
       type: object
       required:
